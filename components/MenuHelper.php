@@ -67,7 +67,7 @@ class MenuHelper
         $config = Configs::instance();
 
         /* @var $manager \yii\rbac\BaseManager */
-        $manager = Configs::authManager();
+        $manager = Yii::$app->getAuthManager();
         $menus = Menu::find()->asArray()->indexBy('id')->all();
         $key = [__METHOD__, $userId, $manager->defaultRoles];
         $cache = $config->cache;
@@ -202,7 +202,7 @@ class MenuHelper
                     $item = call_user_func($callback, $menu);
                 } else {
                     $item = [
-                        'label' => Yii::t('rbac-admin',$menu['name']),
+                        'label' => $menu['name'],
                         'url' => static::parseRoute($menu['route']),
                     ];
                     if ($menu['children'] != []) {

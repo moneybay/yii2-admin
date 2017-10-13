@@ -2,11 +2,10 @@
 
 namespace mdm\admin\components;
 
-use mdm\admin\models\Route;
 use Yii;
-use yii\caching\TagDependency;
-use yii\helpers\ArrayHelper;
 use yii\web\User;
+use yii\helpers\ArrayHelper;
+use yii\caching\TagDependency;
 
 /**
  * Description of Helper
@@ -24,7 +23,7 @@ class Helper
     {
         if (self::$_routes === null) {
             self::$_routes = [];
-            $manager = Configs::authManager();
+            $manager = Yii::$app->getAuthManager();
             foreach ($manager->getPermissions() as $item) {
                 if ($item->name[0] === '/') {
                     self::$_routes[$item->name] = $item->name;
@@ -41,7 +40,7 @@ class Helper
     protected static function getDefaultRoutes()
     {
         if (self::$_defaultRoutes === null) {
-            $manager = Configs::authManager();
+            $manager = Yii::$app->getAuthManager();
             $roles = $manager->defaultRoles;
             $cache = Configs::cache();
             if ($cache && ($routes = $cache->get($roles)) !== false) {
@@ -58,7 +57,7 @@ class Helper
                 }
                 if ($cache) {
                     $cache->set($roles, self::$_defaultRoutes, Configs::cacheDuration(), new TagDependency([
-                        'tags' => Configs::CACHE_TAG,
+                        'tags' => Configs::CACHE_TAG
                     ]));
                 }
             }
@@ -79,7 +78,7 @@ class Helper
                 self::$_userRoutes[$userId] = $routes;
             } else {
                 $routes = static::getDefaultRoutes();
-                $manager = Configs::authManager();
+                $manager = Yii::$app->getAuthManager();
                 foreach ($manager->getPermissionsByUser($userId) as $item) {
                     if ($item->name[0] === '/') {
                         $routes[$item->name] = true;
@@ -88,7 +87,7 @@ class Helper
                 self::$_userRoutes[$userId] = $routes;
                 if ($cache) {
                     $cache->set([__METHOD__, $userId], $routes, Configs::cacheDuration(), new TagDependency([
-                        'tags' => Configs::CACHE_TAG,
+                        'tags' => Configs::CACHE_TAG
                     ]));
                 }
             }
@@ -105,7 +104,7 @@ class Helper
     public static function checkRoute($route, $params = [], $user = null)
     {
         $config = Configs::instance();
-        $r = static::normalizeRoute($route, $config->advanced);
+        $r = static::normalizeRoute($route);
         if ($config->onlyRegisteredRoute && !isset(static::getRegisteredRoutes()[$r])) {
             return true;
         }
@@ -141,30 +140,18 @@ class Helper
         }
     }
 
-    /**
-     * Normalize route
-     * @param  string  $route    Plain route string
-     * @param  boolean|array $advanced Array containing the advanced configuration. Defaults to false.
-     * @return string            Normalized route string
-     */
-    protected static function normalizeRoute($route, $advanced = false)
+    protected static function normalizeRoute($route)
     {
         if ($route === '') {
-            $normalized = '/' . Yii::$app->controller->getRoute();
+            return '/' . Yii::$app->controller->getRoute();
         } elseif (strncmp($route, '/', 1) === 0) {
-            $normalized = $route;
+            return $route;
         } elseif (strpos($route, '/') === false) {
-            $normalized = '/' . Yii::$app->controller->getUniqueId() . '/' . $route;
+            return '/' . Yii::$app->controller->getUniqueId() . '/' . $route;
         } elseif (($mid = Yii::$app->controller->module->getUniqueId()) !== '') {
-            $normalized = '/' . $mid . '/' . $route;
-        } else {
-            $normalized = '/' . $route;
+            return '/' . $mid . '/' . $route;
         }
-        // Prefix @app-id to route.
-        if ($advanced) {
-            $normalized = Route::PREFIX_ADVANCED . Yii::$app->id . $normalized;
-        }
-        return $normalized;
+        return '/' . $route;
     }
 
     /**
@@ -200,7 +187,7 @@ class Helper
                 }
                 $item['items'] = $subItems;
             }
-            if ($allow && !($url == '#' && empty($item['items']))) {
+            if ($allow) {
                 $result[$i] = $item;
             }
         }

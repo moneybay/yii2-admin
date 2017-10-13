@@ -8,6 +8,7 @@ use yii\behaviors\TimestampBehavior;
 use yii\db\ActiveRecord;
 use yii\web\IdentityInterface;
 use mdm\admin\components\Configs;
+use frontend\models\AuthAssignment;
 
 /**
  * User model
@@ -27,8 +28,9 @@ use mdm\admin\components\Configs;
  */
 class User extends ActiveRecord implements IdentityInterface
 {
-    const STATUS_INACTIVE = 0;
-    const STATUS_ACTIVE = 10;
+	const STATUS_PENDING = 0;
+    const STATUS_ACTIVE = 1;
+    const STATUS_INACTIVE = 2;
 
     /**
      * @inheritdoc
@@ -55,7 +57,7 @@ class User extends ActiveRecord implements IdentityInterface
     {
         return [
             ['status', 'default', 'value' => self::STATUS_ACTIVE],
-            ['status', 'in', 'range' => [self::STATUS_ACTIVE, self::STATUS_INACTIVE]],
+            ['status', 'in', 'range' => [self::STATUS_PENDING, self::STATUS_ACTIVE, self::STATUS_INACTIVE]],
         ];
     }
 
@@ -189,9 +191,23 @@ class User extends ActiveRecord implements IdentityInterface
     {
         $this->password_reset_token = null;
     }
-
-    public static function getDb()
+    
+    public function getUserRole()
     {
-        return Configs::userDb();
+        $roles = Yii::$app->authManager->getRolesByUser($this->id);
+
+        $role = '';
+
+        foreach($roles as $key => $value)
+        {
+            $role = $key;
+        }
+
+        return $role;
+    }
+    
+    public function getRole()
+    {
+        return $this->hasOne(AuthAssignment::className(), ['user_id'=>'id']);
     }
 }

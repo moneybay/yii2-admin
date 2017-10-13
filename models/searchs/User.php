@@ -6,12 +6,14 @@ use Yii;
 use yii\base\Model;
 use yii\data\ActiveDataProvider;
 use mdm\admin\models\User as UserModel;
+//use common\models\User as UserModel;
 
 /**
  * User represents the model behind the search form about `mdm\admin\models\User`.
  */
 class User extends UserModel
 {
+    public $userRole;
     /**
      * @inheritdoc
      */
@@ -19,7 +21,7 @@ class User extends UserModel
     {
         return [
             [['id', 'status', 'created_at', 'updated_at'], 'integer'],
-            [['username', 'auth_key', 'password_hash', 'password_reset_token', 'email'], 'safe'],
+            [['username', 'auth_key', 'password_hash', 'password_reset_token', 'email', 'userRole'], 'safe'],
         ];
     }
 
@@ -41,7 +43,7 @@ class User extends UserModel
      */
     public function search($params)
     {
-        $query = UserModel::find();
+        $query = UserModel::find()->joinWith('role');
 
         $dataProvider = new ActiveDataProvider([
             'query' => $query,
@@ -58,6 +60,7 @@ class User extends UserModel
             'status' => $this->status,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
+            'auth_assignment.item_name' => $this->userRole,
         ]);
 
         $query->andFilterWhere(['like', 'username', $this->username])
@@ -68,4 +71,5 @@ class User extends UserModel
 
         return $dataProvider;
     }
+    
 }

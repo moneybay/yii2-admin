@@ -14,7 +14,7 @@ $command = $this->db->createCommand();
 $schema = $this->db->schema;
 
 // rbac
-$authManager = Configs::authManager();
+$authManager = Yii::$app->getAuthManager();
 
 if ($this->db->driverName === 'mssql' || $this->db->driverName === 'sqlsrv' || $this->db->driverName === 'dblib') {
     $sql = <<<SQL

@@ -67,9 +67,13 @@ class AccessControl extends \yii\base\ActionFilter
     {
         $actionId = $action->getUniqueId();
         $user = $this->getUser();
-        if (Helper::checkRoute('/' . $actionId, Yii::$app->getRequest()->get(), $user)) {
+		$temp 	= explode("\\",Yii::$app->controllerNamespace);
+        if (Helper::checkRoute('/'.$temp[0].'/' . $actionId, Yii::$app->getRequest()->get(), $user)) {
             return true;
         }
+        // if (Helper::checkRoute('/' . $actionId, Yii::$app->getRequest()->get(), $user)) {
+            // return true;
+        // }
         $this->denyAccess($user);
     }
 
@@ -100,18 +104,8 @@ class AccessControl extends \yii\base\ActionFilter
         }
 
         $user = $this->getUser();
-        if($user->getIsGuest())
-        {
-            $loginUrl = null;
-            if(is_array($user->loginUrl) && isset($user->loginUrl[0])){
-                $loginUrl = $user->loginUrl[0];
-                }else if(is_string($user->loginUrl)){
-                    $loginUrl = $user->loginUrl;
-                }
-                if(!is_null($loginUrl) && trim($loginUrl,'/') === $uniqueId)
-                {
-                    return false;
-                }
+        if ($user->getIsGuest() && is_array($user->loginUrl) && isset($user->loginUrl[0]) && $uniqueId === trim($user->loginUrl[0], '/')) {
+            return false;
         }
 
         if ($this->owner instanceof Module) {

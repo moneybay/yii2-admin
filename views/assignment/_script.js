@@ -1,8 +1,8 @@
 $('i.glyphicon-refresh-animate').hide();
 function updateItems(r) {
-    _opts.items.available = r.available;
+    _opts.items.avaliable = r.avaliable;
     _opts.items.assigned = r.assigned;
-    search('available');
+    search('avaliable');
     search('assigned');
 }
 
@@ -49,5 +49,5 @@ function search(target) {
 }
 
 // initial
-search('available');
+search('avaliable');
 search('assigned');

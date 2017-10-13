@@ -8,15 +8,22 @@ use mdm\admin\models\form\PasswordResetRequest;
 use mdm\admin\models\form\ResetPassword;
 use mdm\admin\models\form\Signup;
 use mdm\admin\models\form\ChangePassword;
-use mdm\admin\models\User;
+//use mdm\admin\models\User;
+use common\models\User;
+use common\models\Profile;
+use frontend\models\SignupForm;
 use mdm\admin\models\searchs\User as UserSearch;
 use yii\base\InvalidParamException;
 use yii\web\BadRequestHttpException;
 use yii\web\Controller;
 use yii\filters\VerbFilter;
+use yii\filters\AccessControl;
 use yii\web\NotFoundHttpException;
 use yii\base\UserException;
 use yii\mail\BaseMailer;
+use yii\widgets\ActiveForm;
+use yii\db\Expression;
+use yii\helpers\Url;
 
 /**
  * User controller
@@ -31,6 +38,21 @@ class UserController extends Controller
     public function behaviors()
     {
         return [
+//            'access' => [
+//                'class' => AccessControl::className(),
+//                'rules' => [
+//                    [
+//                        'actions' => ['signup', 'reset-password', 'login', 'request-password-reset'],
+//                        'allow' => true,
+//                        'roles' => ['?'],
+//                    ],
+//                    [
+//                        'actions' => ['logout', 'change-password', 'index', 'view', 'delete', 'activate'],
+//                        'allow' => true,
+//                        'roles' => ['@'],
+//                    ],
+//                ],
+//            ],
             'verbs' => [
                 'class' => VerbFilter::className(),
                 'actions' => [
@@ -77,13 +99,43 @@ class UserController extends Controller
     {
         $searchModel = new UserSearch();
         $dataProvider = $searchModel->search(Yii::$app->request->queryParams);
-
+		
         return $this->render('index', [
                 'searchModel' => $searchModel,
                 'dataProvider' => $dataProvider,
         ]);
     }
+    
+	public function actionCreate()
+    {
+    	$user 	= new SignupForm(['scenario'=> SignupForm::SCENARIO_NEWUSER]);
+    	$merchant = new SignupForm(['scenario'=> SignupForm::SCENARIO_NEWMERCHANT]);
+        return $this->render('create',['user'=>$user, 'merchant'=>$merchant]);	
+    }
 
+    public function actionUpdate()
+    {
+        if(isset($_REQUEST['id']))
+        {
+            $model = Profile::findOne(['user_id'=>$_REQUEST['id']]);
+            $model->scenario = 'update';
+
+            if(Yii::$app->request->isAjax && $model->load(Yii::$app->request->post()) )
+            {
+                    Yii::$app->response->format = 'json';
+                    return ActiveForm::validate($model);
+            }	
+
+            if (Yii::$app->request->isPost && $model->load(Yii::$app->request->post())) {	
+                    $model->updated_at = new Expression('NOW()');
+                    $model->update();
+
+                    return $this->redirect(Url::toRoute('//admin/user'));
+            }
+            return $this->renderAjax('_form',['model'=>$model]);
+        }	
+    }
+    
     /**
      * Displays a single User model.
      * @param integer $id
@@ -91,8 +143,11 @@ class UserController extends Controller
      */
     public function actionView($id)
     {
+        $user = User::find()->with('profile')->where(['id'=>$id])->one();
+        
         return $this->render('view', [
-                'model' => $this->findModel($id),
+//                'model' => $this->findModel($id),
+                'model' => $user,
         ]);
     }
 
@@ -233,12 +288,21 @@ class UserController extends Controller
         if ($user->status == User::STATUS_INACTIVE) {
             $user->status = User::STATUS_ACTIVE;
             if ($user->save()) {
-                return $this->goHome();
+                return $this->redirect(['user/index']);
             } else {
                 $errors = $user->firstErrors;
                 throw new UserException(reset($errors));
             }
         }
+		else if ($user->status == User::STATUS_ACTIVE) {
+			$user->status = User::STATUS_INACTIVE;
+			if ($user->save()) {
+				return $this->redirect(['user/index']);
+			} else {
+				$errors = $user->firstErrors;
+				throw new UserException(reset($errors));
+			}
+		}
         return $this->goHome();
     }
 

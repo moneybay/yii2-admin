@@ -110,8 +110,7 @@ class Route extends \yii\base\Object
             $module = Yii::$app->getModule($module);
         }
         $key = [__METHOD__, $module->getUniqueId()];
-        // $cache = Configs::instance()->cache;
-        $cache = null;
+        $cache = Configs::instance()->cache;
         if ($cache === null || ($result = $cache->get($key)) === false) {
             $result = [];
             $this->getRouteRecrusive($module, $result);
@@ -147,8 +146,7 @@ class Route extends \yii\base\Object
 
             $namespace = trim($module->controllerNamespace, '\\') . '\\';
             $this->getControllerFiles($module, $namespace, '', $result);
-			$temp 	= explode("\\",Yii::$app->controllerNamespace);
-            $all = '/'.$temp[0].'/' . ltrim($module->uniqueId . '/*', '/');
+            $all = '/' . ltrim($module->uniqueId . '/*', '/');
             $result[$all] = $all;
         } catch (\Exception $exc) {
             Yii::error($exc->getMessage(), __METHOD__);
@@ -210,8 +208,7 @@ class Route extends \yii\base\Object
             /* @var $controller \yii\base\Controller */
             $controller = Yii::createObject($type, [$id, $module]);
             $this->getActionRoutes($controller, $result);
-			$temp 	= explode("\\",Yii::$app->controllerNamespace);
-            $all = '/'.$temp[0]."/{$controller->uniqueId}/*";
+            $all = "/{$controller->uniqueId}/*";
             $result[$all] = $all;
         } catch (\Exception $exc) {
             Yii::error($exc->getMessage(), __METHOD__);
@@ -229,8 +226,7 @@ class Route extends \yii\base\Object
         $token = "Get actions of controller '" . $controller->uniqueId . "'";
         Yii::beginProfile($token, __METHOD__);
         try {
-			$temp 	= explode("\\",Yii::$app->controllerNamespace);
-            $prefix = '/'.$temp[0].'/' . $controller->uniqueId . '/';
+            $prefix = '/' . $controller->uniqueId . '/';
             foreach ($controller->actions() as $id => $value) {
                 $result[$prefix . $id] = $prefix . $id;
             }

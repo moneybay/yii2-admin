@@ -129,7 +129,7 @@ class Menu extends \yii\db\ActiveRecord
     {
         if (self::$_routes === null) {
             self::$_routes = [];
-            foreach (Configs::authManager()->getPermissions() as $name => $value) {
+            foreach (Yii::$app->getAuthManager()->getPermissions() as $name => $value) {
                 if ($name[0] === '/' && substr($name, -1) != '*') {
                     self::$_routes[] = $name;
                 }

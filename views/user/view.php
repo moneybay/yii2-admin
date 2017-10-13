@@ -19,7 +19,7 @@ $controllerId = $this->context->uniqueId . '/';
 
     <p>
         <?php
-        if ($model->status == 0 && Helper::checkRoute($controllerId . 'activate')) {
+        if ($model->status == 2 && Helper::checkRoute($controllerId . 'activate')) {
             echo Html::a(Yii::t('rbac-admin', 'Activate'), ['activate', 'id' => $model->id], [
                 'class' => 'btn btn-primary',
                 'data' => [
@@ -30,15 +30,15 @@ $controllerId = $this->context->uniqueId . '/';
         }
         ?>
         <?php
-        if (Helper::checkRoute($controllerId . 'delete')) {
-            echo Html::a(Yii::t('rbac-admin', 'Delete'), ['delete', 'id' => $model->id], [
-                'class' => 'btn btn-danger',
-                'data' => [
-                    'confirm' => Yii::t('yii', 'Are you sure you want to delete this item?'),
-                    'method' => 'post',
-                ],
-            ]);
-        }
+//        if (Helper::checkRoute($controllerId . 'delete')) {
+//            echo Html::a(Yii::t('rbac-admin', 'Delete'), ['delete', 'id' => $model->id], [
+//                'class' => 'btn btn-danger',
+//                'data' => [
+//                    'confirm' => Yii::t('yii', 'Are you sure you want to delete this item?'),
+//                    'method' => 'post',
+//                ],
+//            ]);
+//        }
         ?>
     </p>
 
@@ -48,10 +48,21 @@ $controllerId = $this->context->uniqueId . '/';
         'attributes' => [
             'username',
             'email:email',
+            [
+                'label' => 'Name',
+                'value' => $model->profile->fname.' '.$model->profile->lname,
+            ],
+            [
+                'label' => 'NRIC/Passport',
+                'value' => '',
+            ],
             'created_at:date',
-            'status',
+            [
+                'label' => 'Status',
+                'value' => $model->status,
+            ],
         ],
-    ])
+    ]);
     ?>
 
 </div>

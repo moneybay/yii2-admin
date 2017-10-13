@@ -1,8 +1,8 @@
 $('i.glyphicon-refresh-animate').hide();
 function updateRoutes(r) {
-    _opts.routes.available = r.available;
+    _opts.routes.avaliable = r.avaliable;
     _opts.routes.assigned = r.assigned;
-    search('available');
+    search('avaliable');
     search('assigned');
 }
 
@@ -65,5 +65,5 @@ function search(target) {
 }
 
 // initial
-search('available');
+search('avaliable');
 search('assigned');
